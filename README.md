@@ -14,7 +14,7 @@
 
 ## Architecture Diagram
 
-Image placed at the top; show every component and the direction data flows between them.
+![](./assets/architecture-diagram.png)
 
 ---
 
