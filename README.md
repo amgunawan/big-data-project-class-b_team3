@@ -169,11 +169,13 @@ python dataset_cleaning.py
 docker compose up --build
 ```
 
-Check all containers are running:
+Wait until all containers are running, then verify:
 
 ```bash
 docker compose ps
 ```
+
+Expected Containers:
 
 | Container    | Port        | Description   |
 | ------------ | ----------- | ------------- |
@@ -184,6 +186,16 @@ docker compose ps
 | spark-master | 7077, 8082  | Spark Master  |
 | spark-worker | 8083        | Spark Worker  |
 | streamlit    | 8501        | Dashboard     |
+
+Open the Spark Master UI: http://localhost:8082
+
+![](./assets/spark-master.png)
+
+You should see **1 worker** registered with 2 cores and 2.0 GB RAM.
+
+Open the Spark Worker UI: http://localhost:8083
+
+![](./assets/spark-worker.png)
 
 ---
 
@@ -220,22 +232,28 @@ docker exec -it namenode hdfs dfs -put /data/zomato_dataset_cleaned.csv /user/zo
 docker exec -it namenode hdfs dfs -ls /user/zomato/raw/
 
 # Preview the first lines of the CSV file
-docker exec -it hdfs dfs -cat /user/zomato/raw/zomato_dataset_cleaned.csv | head
+docker exec -it namenode hdfs dfs -cat /user/zomato/raw/zomato_dataset_cleaned.csv | head
 ```
 
 Check in browser: http://localhost:9870 → Utilities → Browse the file system
+
+![](./assets/namenode.png)
+
+You should see that `zomato_dataset_cleaned.csv` is in `/user/zomato/raw`.
 
 #### Fix Permission
 
 Grants full access to `/user/zomato` in HDFS so Spark and other jobs can read/write and execute without permission issues.
 
 ```bash
-docker exec -it hdfs dfs -chmod -R 777 /user/zomato
+docker exec -it namenode hdfs dfs -chmod -R 777 /user/zomato
 ```
 
 ---
 
-### Step 4 — Submit Batch Job
+### Step 4 — Submit Job A: Batch Analysis
+
+This job reads the dataset from HDFS and runs historical aggregations across 7 problem statements, writing results back to HDFS as CSV.
 
 ```bash
 docker exec -it spark-master /opt/spark/bin/spark-submit \
@@ -246,11 +264,45 @@ docker exec -it spark-master /opt/spark/bin/spark-submit \
 
 > Output: CSV directories in HDFS — `b1_*`, `b2_top/bottom_riders`, `b3_by_order`, `b3_by_vehicle`, `b4_by_traffic`, `b5_festival`, `b6_weather_traffic_combo`, `b7_distribution`, `b7_bottleneck`.
 
+Expected Output:
+
+1. Key Factors Impacting Avg Delivery Time
+
+   ![](./assets/key-factors-impacting-avg-delivery-time.png)
+
+2. Rider Performance
+
+   ![](./assets/rider-performance.png)
+
+3. Delivery Time by Type of Order & Type of Vehicle
+
+   ![](./assets/delivery-time-by-type-of-order-and-vehicle.png)
+
+4. Avg Delivery Delay by Road Traffic Density
+
+   ![](./assets/avg-delivery-delay-by-road-traffic-density.png)
+
+5. Festival vs Normal Day Performance
+
+   ![](./assets/festival-vs-normal-day-performance.png)
+
+6. Weather x Traffic Worst Combinations
+
+   ![](./assets/weather-traffic-worst-combinations.png)
+
+7. Delivery Time Distribution & Bottleneck
+
+   ![](./assets/delivery-time-distribution-and-bottleneck.png)
+
+![](./assets/batch-results.png)
+
+You should see all 13 `.csv` files is in `/user/zomato/batch_results`.
+
 ---
 
-### Step 5 — Submit Streaming Job
+### Step 5 — Submit Job B: Spark Structured Streaming
 
-Leave this running in the terminal.
+This job consumes the live Kafka topic, aggregates delivery metrics per 10-second trigger window, and writes a JSON snapshot to disk for the dashboard to read. Keep it running in the background.
 
 ```bash
 docker exec -it spark-master /opt/spark/bin/spark-submit \
@@ -258,6 +310,12 @@ docker exec -it spark-master /opt/spark/bin/spark-submit \
     --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.0.0 \
     /opt/zomato/jobs/streaming_job.py
 ```
+
+Expected Output (every micro-batch):
+
+![](./assets/spark-structured-streaming.png)
+
+You can stop the job with `Ctrl+C` (not necessary).
 
 ---
 
@@ -284,9 +342,37 @@ python producer.py
 | Spark Master        | http://localhost:8082 | View running jobs      |
 | HDFS                | http://localhost:9870 | View uploaded files    |
 
+Expected Output:
+
+1. Streamlit Dashboard
+
+   ![](./assets/streamlit-dashboard-1.png)
+
+   ![](./assets/streamlit-dashboard-2.png)
+
+   If no snapshot exists yet you will see a warning — start Job B first (Step 5), then refresh.
+
+   The dashboard shows:
+   - `Batch ID` and `Last Updated` from the latest snapshot
+   - `Total Orders` — cumulative order count across all batches
+   - `Orders / Min` — estimated throughput based on the 10-second trigger window
+   - `Avg Delivery Min` — rolling average delivery time across all active weather groups
+   - `Orders by Weather Condition` — order volume distribution across weather condition category
+   - `Avg Delivery Time by Weather` — average delivery duration per weather condition, from green (fast) to red (slow)
+
+2. Kafka UI
+
+   ![](./assets/kafka-ui.png)
+
+3. Spark Master
+
+   While a job is running, the **Running Applications** tab on the Spark Master UI shows the active streaming query.
+
+   ![](./assets/spark-master-ui.png)
+
 ---
 
-### OPTIONAL: Step 8 — Cleanup
+### Step 8 — Cleanup
 
 ```bash
 # Stop all containers
@@ -303,20 +389,50 @@ rm -rf hadoop_namenode hadoop_datanode1 hadoop_tmp
 
 ---
 
-## Expected Output
+## Web UI Summary
 
-Describe or screenshot what the Spark console prints and what the Streamlit dashboard looks like when everything is working
+| Service       | URL                   | Description               |
+| ------------- | --------------------- | ------------------------- |
+| HDFS NameNode | http://localhost:9870 | Browse files in HDFS      |
+| Kafka UI      | http://localhost:8080 | Monitor topics & messages |
+| Spark Master  | http://localhost:8082 | Running jobs              |
+| Spark Worker  | http://localhost:8083 | Worker status             |
+| Streamlit     | http://localhost:8501 | Live Dashboard            |
 
 ---
 
 ## Findings & Conclusion
 
-What did you learn from the batch analysis? What patterns appear in the live stream? Connect the data back to your problem statement
+### Batch Analysis
+
+1. **Key Factors:** The factor with the strongest impact on average delivery time was `___`. Weather condition `___` and traffic density `___` consistently showed the longest delays.
+2. **Rider Performance:** Top-rated riders averaged `___` min delivery time, while bottom-rated riders averaged `___` min, suggesting a correlation between rating and efficiency.
+3. **Order & Vehicle Type:** `___` order type took the longest to deliver on average. `___` vehicle type was the fastest.
+4. **Traffic Density:** `___` traffic density caused the most delay, averaging `___` min vs `___` min under low-traffic conditions.
+5. **Festival Impact:** Deliveries during festival days were `___` min slower/faster on average compared to normal days.
+6. **Worst Combinations:** The worst weather × traffic combination was `___` + `___`, averaging `___` min per delivery.
+7. **Distribution:** The median delivery time was `___` min, with 90% of deliveries completed within `___` min. Bottleneck orders were concentrated under conditions: `___`.
+
+### Real-Time Stream
+
+1. **Orders/Min:** At peak, the stream processed approximately `___` orders per minute.
+2. **Avg Delivery Time:** The live rolling average hovered around `___` min, which was `consistent with / higher than / lower than` the batch historical average.
+3. Patterns observed in the stream: `___`
+
+### Conclusion
+
+_Example: Traffic density and weather conditions are the two strongest predictors of delivery delay. Rider rating shows a moderate correlation with speed but is likely confounded by route difficulty. Real-time monitoring validates that batch trends hold under live conditions, making this pipeline viable for operational decision-making._
 
 ---
 
 ## Known Limitations
 
-What does not work, what corners were cut, and what you would improve given more time
+This pipeline was built as a proof-of-concept with deliberate trade-offs under time and resource constraints. The limitations below reflect what was simplified and what we would improve given more time.
 
----
+| Area            | Limitation                                                                                       | Potential Improvement                                                              |
+| --------------- | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| Data            | Raw dataset has null values and inconsistent time formats that required cleaning before use      | Implement schema validation at ingestion time rather than as a pre-processing step |
+| Scalability     | Single DataNode and single Spark Worker — not representative of a production cluster             | Add more DataNodes and Workers; test with a larger dataset                         |
+| Fault Tolerance | No retry logic in the producer if Kafka is temporarily unavailable                               | Add exponential backoff and a dead-letter queue                                    |
+| Dashboard       | Streamlit polls a JSON file on disk — a shared filesystem dependency that breaks if paths change | Replace file-based sink with a proper database (e.g. PostgreSQL or Redis)          |
+| Scope           | City column was included in analysis but is sparsely populated in the dataset                    | Enrich with geolocation data or filter to cities with sufficient sample size       |

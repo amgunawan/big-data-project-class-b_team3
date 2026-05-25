@@ -42,8 +42,8 @@ def write_dashboard_batch(batch_df, batch_id: int) -> None:
         "batch_id":                  batch_id,
         "updated_at":                datetime.utcnow().isoformat(timespec="seconds") + "Z",
         "rows":                      rows,
-        "orders_per_minute":         orders_per_min,       # R1
-        "current_avg_delivery_min":  global_avg,           # R2
+        "orders_per_minute":         orders_per_min,
+        "current_avg_delivery_min":  global_avg,
         "total_orders_this_batch":   total,
     }
 
