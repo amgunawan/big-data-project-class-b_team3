@@ -42,7 +42,7 @@ The dataset implemented in this project is as follows:
 | ---------------------------------------- | ----- | ------------ | ---------------------------------------------------------------------------------------------------- |
 | **Zomato Delivery Operations Analytics** | ~6 MB | ~45 K orders | [Kaggle](https://www.kaggle.com/datasets/saurabhbadole/zomato-delivery-operations-analytics-dataset) |
 
-Out of approximately 20 original columns in the dataset, only 12 columns are selected and used in this pipeline. This selection was made to focus on the most relevant variables for delivery performance analysis and to support the design of data engineering workflows.
+Out of 20 original columns in the dataset, only 12 columns are selected and used in this pipeline. This selection was made to focus on the most relevant variables for delivery performance analysis and to support the design of data engineering workflows.
 
 | Key Field                 | Data Types                                               | Description                                                 |
 | ------------------------- | -------------------------------------------------------- | ----------------------------------------------------------- |
@@ -54,7 +54,7 @@ Out of approximately 20 original columns in the dataset, only 12 columns are sel
 | `Time_Order_picked`       | Time (hh:mm:ss)                                          | Time the order was picked up for delivery                   |
 | `Weather_conditions`      | Category (Fog, Stormy, Sandstorms, Windy, Cloudy, Sunny) | Weather conditions at the time of delivery                  |
 | `Road_traffic_density`    | Category (Jam, High, Medium, Low)                        | Density of road traffic during delivery                     |
-| `Type_of_order`           | Category (Snack, Meal, Drinks, Buffet)                   | Type of order (e.g., dine-in, takeaway, delivery)           |
+| `Type_of_order`           | Category (Snack, Meal, Drinks, Buffet)                   | Type of order                                               |
 | `Type_of_vehicle`         | Category (motorcycle, scooter, electric_scooter)         | Type of vehicle used for delivery                           |
 | `Festival`                | Category (Yes, No)                                       | Indicator of whether the delivery coincided with a festival |
 | `Time_taken (min)`        | Integer                                                  | Time taken for delivery in minutes                          |
