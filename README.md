@@ -225,10 +225,9 @@ docker exec -it hdfs dfs -cat /user/zomato/raw/zomato_dataset_cleaned.csv | head
 
 Check in browser: http://localhost:9870 → Utilities → Browse the file system
 
-#### Fix Permision for HDFS
+#### Fix Permission
 
 Grants full access to `/user/zomato` in HDFS so Spark and other jobs can read/write and execute without permission issues.
-description
 
 ```bash
 docker exec -it hdfs dfs -chmod -R 777 /user/zomato
