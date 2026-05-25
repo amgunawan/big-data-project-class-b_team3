@@ -84,25 +84,61 @@ Based on the dataset and the selected key fields, the following problems have be
 
 ---
 
-### How to Run
+## Project Structure
 
-Exact step-by-step commands, i.e: `git clone` → `docker compose up` → start producer → submit Spark jobs → open dashboard
+```
+big-data-project-class-b_team3
+├── docker-compose.yml
+├── hadoop_config
+│   ├── .env
+│   ├── core-site.xml
+│   └── hdfs-site.xml
+├── kafka_config
+│   ├── kafka.env
+│   └── server-overrides.properties
+├── scripts
+│   ├── init-datanode.sh
+│   ├── start-hdfs.sh
+│   └── dataset_cleaning.py
+├── producer
+│   ├── producer.py
+│   └── requirements.txt
+├── jobs
+│   ├── batch_analysis.py
+│   └── streaming_job.py
+├── dashboard
+│   ├── app.py
+│   ├── Dockerfile
+│   └── requirements.txt
+├── checkpoints
+│   └── .gitkeep
+├── dashboard_data
+│   └── .gitkeep
+├── data
+│   ├── zomato_delivery.csv
+│   └── zomato_dataset_cleaned.csv
+└── README.md
+```
 
 ---
 
-### Expected Output
+## Setup & Installation Guide
+
+---
+
+## Expected Output
 
 Describe or screenshot what the Spark console prints and what the Streamlit dashboard looks like when everything is working
 
 ---
 
-### Findings & Conclusion
+## Findings & Conclusion
 
 What did you learn from the batch analysis? What patterns appear in the live stream? Connect the data back to your problem statement
 
 ---
 
-### Known Limitations
+## Known Limitations
 
 What does not work, what corners were cut, and what you would improve given more time
 
