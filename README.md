@@ -124,21 +124,43 @@ big-data-project-class-b_team3
 
 ## Step-by-Step Guide
 
+### Clone the Repository
+
+Clone the project repository using Git:
+
+```bash
+git clone git@github.com:amgunawan/big-data-project-class-b_team3
+```
+
+---
+
 ### Download Dataset
 
 Download from Kaggle: https://www.kaggle.com/datasets/saurabhbadole/zomato-delivery-operations-analytics-dataset
 
-Save the CSV to the `data/` folder as `zomato_delivery.csv`. Skip this step if the file already exists in the folder.
+Save the CSV to the `data/` folder as `zomato_delivery.csv`.
+
+> ⚠️ Skip this step if the file already exists in the folder.
 
 ---
 
 ### Fix Permission
 
+Move into the folder:
+
+```bash
+cd big-data-project-class-b_team3
+```
+
 The Spark user inside the container needs write access to both of these folders.
+
+For Linux/macOS users, run this command in the terminal:
 
 ```bash
 chmod 777 checkpoints dashboard_data
 ```
+
+> ⚠️ Windows users can skip this step because `chmod` permissions are not required on Windows systems.
 
 ---
 
@@ -149,27 +171,56 @@ chmod 777 checkpoints dashboard_data
 #### Install Dependencies
 
 ```bash
-pip install pandas kagglehub
+pip install pandas kagglehub     # for Windows users
+pip3 install pandas kagglehub    # for Linux/MacOS users
 ```
 
 #### Run Cleaning
 
 ```bash
 cd scripts
-python dataset_cleaning.py
+
+python dataset_cleaning.py       # for Windows users
+python3 dataset_cleaning.py     # for Linux/MacOS users
 ```
 
 > ✅ Make sure the `zomato_dataset_cleaned.csv` file exists in `data/` before running docker compose.
 
 ---
 
+### ⚠️ Prerequisites (Important for Windows Users)
+
+If you are using Windows, make sure to adjust the line endings of all `.sh` and `.yml` files before running the project. Windows may automatically convert line endings to `CRLF`, which can cause errors when running Docker or shell scripts inside Linux-based containers.
+
+To fix this issue:
+
+1. Open the file in VS Code
+2. Look at the bottom-right corner
+3. If it shows `CRLF`, click it
+4. Change it to `LF`
+5. Save the file
+
+> Linux/MacOS users can skip this step.
+
+---
+
 ### Step 1 — Start all services
+
+Go back to the project root folder:
+
+```bash
+cd big-data-project-class-b_team3
+```
+
+Make sure Docker Desktop is open and running. Let's start the services:
 
 ```bash
 docker compose up --build
 ```
 
-Wait until all containers are running, then verify:
+> ⚠️ If you encounter an issue, refer to this troubleshooting [section](troubleshooting.md#1-container-name-already-exists).
+
+Wait until all containers are running. Open new terminal, then verify:
 
 ```bash
 docker compose ps
@@ -201,6 +252,8 @@ Open the Spark Worker UI: http://localhost:8083
 
 ### Step 2 — Create Kafka Topic
 
+Run this command in terminal:
+
 ```bash
 docker exec kafka ./bin/kafka-topics.sh \
     --bootstrap-server localhost:9092 \
@@ -208,8 +261,11 @@ docker exec kafka ./bin/kafka-topics.sh \
     --topic zomato-orders \
     --partitions 3 \
     --replication-factor 1
+```
 
-# Verify
+Verify that the Kafka topic has been created successfully:
+
+```bash
 docker exec kafka ./bin/kafka-topics.sh \
     --bootstrap-server localhost:9092 \
     --list
@@ -232,7 +288,8 @@ docker exec -it namenode hdfs dfs -put /data/zomato_dataset_cleaned.csv /user/zo
 docker exec -it namenode hdfs dfs -ls /user/zomato/raw/
 
 # Preview the first lines of the CSV file
-docker exec -it namenode hdfs dfs -cat /user/zomato/raw/zomato_dataset_cleaned.csv | head
+docker exec -it namenode hdfs dfs -cat /user/zomato/raw/zomato_dataset_cleaned.csv | Select-Object -First 10      # for Windows users
+docker exec -it namenode hdfs dfs -cat /user/zomato/raw/zomato_dataset_cleaned.csv | head                         # for Linux/MacOS users
 ```
 
 Check in browser: http://localhost:9870 → Utilities → Browse the file system
@@ -436,3 +493,7 @@ This pipeline was built as a proof-of-concept with deliberate trade-offs under t
 | Fault Tolerance | No retry logic in the producer if Kafka is temporarily unavailable                               | Add exponential backoff and a dead-letter queue                                    |
 | Dashboard       | Streamlit polls a JSON file on disk — a shared filesystem dependency that breaks if paths change | Replace file-based sink with a proper database (e.g. PostgreSQL or Redis)          |
 | Scope           | City column was included in analysis but is sparsely populated in the dataset                    | Enrich with geolocation data or filter to cities with sufficient sample size       |
+
+```
+
+```
