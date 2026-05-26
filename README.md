@@ -473,23 +473,29 @@ rm -rf hadoop_namenode hadoop_datanode1 hadoop_tmp                              
 
 ### Batch Analysis
 
-1. **Key Factors:** The factor with the strongest impact on average delivery time was `___`. Weather condition `___` and traffic density `___` consistently showed the longest delays.
-2. **Rider Performance:** Top-rated riders averaged `___` min delivery time, while bottom-rated riders averaged `___` min, suggesting a correlation between rating and efficiency.
-3. **Order & Vehicle Type:** `___` order type took the longest to deliver on average. `___` vehicle type was the fastest.
-4. **Traffic Density:** `___` traffic density caused the most delay, averaging `___` min vs `___` min under low-traffic conditions.
-5. **Festival Impact:** Deliveries during festival days were `___` min slower/faster on average compared to normal days.
-6. **Worst Combinations:** The worst weather × traffic combination was `___` + `___`, averaging `___` min per delivery.
-7. **Distribution:** The median delivery time was `___` min, with 90% of deliveries completed within `___` min. Bottleneck orders were concentrated under conditions: `___`.
+1. **Key Factors:** The factor with the strongest impact on average delivery time was `road traffic density`. Weather condition `Fog` and traffic density `Jam` consistently showed the longest delays.
+2. **Rider Performance:** Top-rated riders averaged `24.6` min delivery time, while bottom-rated riders averaged `29.8` min, suggesting a correlation between rating and efficiency.
+3. **Order & Vehicle Type:** `Meal` order type took the longest to deliver on average. `Electric scooter` vehicle type was the fastest.
+4. **Traffic Density:** `Jam` traffic density caused the most delay, averaging `31.18` min vs `21.34` min under low-traffic conditions.
+5. **Festival Impact:** Deliveries during festival days were `19.5` min slower/faster on average compared to normal days.
+6. **Worst Combinations:** The worst weather × traffic combination was `Fog` + `Jam`, averaging `36.87` min per delivery.
+7. **Distribution:** The median delivery time was `26` min, with 90% of deliveries completed within `40` min. Bottleneck orders were concentrated under conditions: `Fog/Cloudy weather, Jam traffic density, and motorcycle usage`.
 
 ### Real-Time Stream
 
-1. **Orders/Min:** At peak, the stream processed approximately `___` orders per minute.
-2. **Avg Delivery Time:** The live rolling average hovered around `___` min, which was `consistent with / higher than / lower than` the batch historical average.
-3. Patterns observed in the stream: `___`
+1. **Orders/Min:** At peak, the stream processed approximately `1500-3000` orders per minute.
+2. **Avg Delivery Time:** The live rolling average hovered around `26.5` min, which was `consistent with` the batch historical average.
+3. Patterns observed in the stream:
+
+   `The stream showed a stable delivery-time trend after the initial batches, remaining around 26–27 minutes. Weather conditions such as Fog and Cloudy continued to contribute to longer delivery times, while Jam traffic density consistently created operational bottlenecks. The cumulative order volume increased steadily across batches, indicating stable streaming ingestion and processing performance.`
 
 ### Conclusion
 
-_Example: Traffic density and weather conditions are the two strongest predictors of delivery delay. Rider rating shows a moderate correlation with speed but is likely confounded by route difficulty. Real-time monitoring validates that batch trends hold under live conditions, making this pipeline viable for operational decision-making._
+The analysis demonstrates that traffic density and weather conditions are the strongest operational factors affecting Zomato delivery performance. Jam-level traffic consistently produced the highest delays, while adverse weather conditions such as Fog and Cloudy weather further increased delivery time. Festival periods significantly worsened operational efficiency, with delivery times increasing by nearly 20 minutes compared to normal days. Vehicle type also influenced performance, where electric scooters and scooters achieved faster average delivery times than motorcycles.
+
+Rider performance analysis suggests that higher-rated riders generally completed deliveries more efficiently than lower-rated riders, indicating a moderate relationship between rider rating and operational effectiveness. Additionally, bottleneck analysis revealed that the most problematic deliveries were concentrated under combinations of Jam traffic, poor weather conditions, and motorcycle usage.
+
+The real-time streaming dashboard validated that historical batch-analysis trends remained consistent under live data conditions. The streaming pipeline maintained stable processing performance while continuously monitoring delivery trends, order throughput, and operational bottlenecks. Overall, the integration of Hadoop, Kafka, Spark Structured Streaming, and real-time dashboard visualization proved effective for large-scale delivery monitoring and operational decision-making.
 
 ---
 
