@@ -447,7 +447,7 @@ docker compose down
 Remove-Item checkpoints\* -Recurse -Force                                              # for Windows users
 rm -rf checkpoints/*                                                                   # for Linux/MacOS users
 
-Remove-Item dashboard_data/latest_snapshot.json dashboard_data/history.jsonl -Force    # for Windows users
+Remove-Item dashboard_data/latest_snapshot.json, dashboard_data/history.jsonl -Force    # for Windows users
 rm -f dashboard_data/latest_snapshot.json dashboard_data/history.jsonl                 # for Linux/MacOS users
 
 # Delete HDFS data stored in local volume
