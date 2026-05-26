@@ -200,7 +200,7 @@ To fix this issue:
 4. Change it to `LF`
 5. Save the file
 
-> Linux/MacOS users can skip this step.
+> ⚠️ Linux/MacOS users can skip this step.
 
 ---
 
