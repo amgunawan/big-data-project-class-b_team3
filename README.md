@@ -319,6 +319,8 @@ docker exec -it spark-master /opt/spark/bin/spark-submit \
     /opt/zomato/jobs/batch_analysis.py
 ```
 
+> If you encounter an issue, refer to this troubleshooting [section](troubleshooting.md#3-spark-warning-no-resources-available).
+
 > Output: CSV directories in HDFS — `b1_*`, `b2_top/bottom_riders`, `b3_by_order`, `b3_by_vehicle`, `b4_by_traffic`, `b5_festival`, `b6_weather_traffic_combo`, `b7_distribution`, `b7_bottleneck`.
 
 Expected Output:
@@ -359,7 +361,7 @@ You should see all 13 `.csv` files is in `/user/zomato/batch_results`.
 
 ### Step 5 — Submit Job B: Spark Structured Streaming
 
-This job consumes the live Kafka topic, aggregates delivery metrics per 10-second trigger window, and writes a JSON snapshot to disk for the dashboard to read. Keep it running in the background.
+This job consumes the live Kafka topic, aggregates delivery metrics per 10-second trigger window, and writes a JSON snapshot to disk for the dashboard to read.
 
 ```bash
 docker exec -it spark-master /opt/spark/bin/spark-submit \
@@ -368,11 +370,11 @@ docker exec -it spark-master /opt/spark/bin/spark-submit \
     /opt/zomato/jobs/streaming_job.py
 ```
 
+> ⚠️ Keep it running in the background.
+
 Expected Output (every micro-batch):
 
 ![](./assets/spark-structured-streaming.png)
-
-You can stop the job with `Ctrl+C` (not necessary).
 
 ---
 
@@ -382,8 +384,12 @@ The producer automatically connects to `localhost:29092` (Kafka external port).
 
 ```bash
 cd producer
-pip install -r requirements.txt
-python producer.py
+
+pip install -r requirements.txt     # for Windows users
+pip3 install -r requirements.txt    # for Linux/MacOS users
+
+python producer.py                  # for Windows users
+python3 producer.py                 # for Linux/MacOS users
 ```
 
 > ⚠️ Run in the new terminal.
@@ -419,6 +425,8 @@ Expected Output:
 
 2. Kafka UI
 
+   You should see **3 partitions** and **1 replication factor** in `/topics/zomato-orders/`.
+
    ![](./assets/kafka-ui.png)
 
 3. Spark Master
@@ -436,12 +444,15 @@ Expected Output:
 docker compose down
 
 # Delete checkpoint and dashboard data (reset for re-run)
-rm -rf checkpoints/*
-rm -f dashboard_data/latest_snapshot.json dashboard_data/history.jsonl
-touch checkpoints/.gitkeep dashboard_data/.gitkeep
+Remove-Item checkpoints\* -Recurse -Force                                              # for Windows users
+rm -rf checkpoints/*                                                                   # for Linux/MacOS users
+
+Remove-Item dashboard_data/latest_snapshot.json dashboard_data/history.jsonl -Force    # for Windows users
+rm -f dashboard_data/latest_snapshot.json dashboard_data/history.jsonl                 # for Linux/MacOS users
 
 # Delete HDFS data stored in local volume
-rm -rf hadoop_namenode hadoop_datanode1 hadoop_tmp
+Remove-Item hadoop_namenode, hadoop_datanode1, hadoop_tmp -Recurse -Force              # for Windows users
+rm -rf hadoop_namenode hadoop_datanode1 hadoop_tmp                                     # for Linux/MacOS users
 ```
 
 ---
@@ -493,7 +504,3 @@ This pipeline was built as a proof-of-concept with deliberate trade-offs under t
 | Fault Tolerance | No retry logic in the producer if Kafka is temporarily unavailable                               | Add exponential backoff and a dead-letter queue                                    |
 | Dashboard       | Streamlit polls a JSON file on disk — a shared filesystem dependency that breaks if paths change | Replace file-based sink with a proper database (e.g. PostgreSQL or Redis)          |
 | Scope           | City column was included in analysis but is sparsely populated in the dataset                    | Enrich with geolocation data or filter to cities with sufficient sample size       |
-
-```
-
-```
